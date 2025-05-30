@@ -1,5 +1,8 @@
 import { AppSidebar } from "@/components/app-sidebar"
 import { ChartAreaInteractive } from "@/components/chart-area-interactive"
+import PomodoroTimer from "@/components/PomodoroTimer"
+import StreakCounter from "@/components/StreakCounter"
+import TaskForm from "@/components/TaskForm"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -12,6 +15,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
+import { Textarea } from "@/components/ui/textarea"
 
 export default function Page() {
   return (
@@ -26,21 +30,25 @@ export default function Page() {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbPage>October 2024</BreadcrumbPage>
+                <BreadcrumbPage>Dashboard</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
         </header>
-        <div className="flex flex-1 flex-col gap-4 p-4">
+        <TaskForm/>
+        <PomodoroTimer/>
+        <StreakCounter/>
+        {/* <Textarea className="h-16 w-73 ml-2 mt-5" /> */}
+        {/* <div className="flex flex-1 flex-col gap-4 p-4">
           <div className="grid auto-rows-min gap-4 md:grid-cols-5">
             {Array.from({ length: 20 }).map((_, i) => (
               <div key={i} className="bg-muted/50 aspect-square rounded-xl" />
             ))}
           </div>
-        </div>
+        </div> */}
       </SidebarInset>
     </SidebarProvider>
-    <ChartAreaInteractive />
+    {/* <ChartAreaInteractive /> */}
     </>
   )
 }
