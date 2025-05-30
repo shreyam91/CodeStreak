@@ -13,6 +13,10 @@ import {
 const DAILY_GOAL_MINUTES = 50;
 const WEEKLY_GOAL_DAYS = 5;
 
+const logout = () => {
+    signOut(auth).then(() => setUser(null));
+  };
+
 function Dashboard() {
   const [studySessions, setStudySessions] = useState([]);
   const [streak, setStreak] = useState(0);
@@ -126,6 +130,10 @@ function Dashboard() {
         <h3 className="text-lg font-semibold">Current Streak</h3>
         <p className="text-3xl font-bold text-green-600">{streak} days</p>
       </div>
+
+      <button onClick={logout} className="bg-red-500 text-white px-4 py-2 rounded mt-4">
+            Logout
+          </button>
     </div>
   );
 }
