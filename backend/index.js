@@ -1,37 +1,39 @@
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const admin = require('firebase-admin');
-const serviceAccount = require('./serviceAccountKey.json'); // download this from Firebase
+const authRoutes = require('./routes/auth');
+const taskRoutes = require('./routes/tasks');
+const pomodoroRoutes = require('./routes/pomodoro');
+const streakRoutes = require('./routes/streak');
 
 const app = express();
+
+// Middleware
 app.use(cors());
 app.use(express.json());
 
-// Firebase admin init
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
+// Database connection
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/codestreak', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+.then(() => console.log('Connected to MongoDB'))
+.catch((err) => console.error('MongoDB connection error:', err));
+
+// Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/tasks', taskRoutes);
+app.use('/api/pomodoro', pomodoroRoutes);
+app.use('/api/streak', streakRoutes);
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ message: 'Something went wrong!' });
 });
 
-// MongoDB connection
-mongoose.connect(process.env.MONGO_URI).then(() => {
-  console.log('MongoDB connected');
-});
-
-const verifyFirebaseToken = async (req, res, next) => {
-  const token = req.headers.authorization?.split('Bearer ')[1];
-  if (!token) return res.status(401).json({ message: 'Missing token' });
-
-  try {
-    const decoded = await admin.auth().verifyIdToken(token);
-    req.user = decoded;
-    next();
-  } catch (err) {
-    res.status(403).json({ message: 'Unauthorized' });
-  }
-};
-
-const topicsRouter = require('./routes/topics');
-app.use('/api/topics', verifyFirebaseToken, topicsRouter);
-
-app.listen(5000, () => console.log('Server running on port 5000'));
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+}); 
