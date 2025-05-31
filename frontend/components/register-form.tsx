@@ -11,8 +11,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { X } from "lucide-react"
 import { useState } from "react"
-import { auth, googleProvider } from "@/lib/firebase"
-import { createUserWithEmailAndPassword, signInWithPopup, updateProfile } from "firebase/auth"
 import { useRouter } from "next/navigation"
 
 export function RegisterForm({
@@ -44,24 +42,27 @@ export function RegisterForm({
     setLoading(true)
 
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password)
-      await updateProfile(userCredential.user, {
-        displayName: username
-      })
-      router.push("/dashboard")
-    } catch (err: any) {
-      setError(err.message)
-    } finally {
-      setLoading(false)
-    }
-  }
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: username,
+          email,
+          password,
+        }),
+      });
 
-  const handleGoogleRegister = async () => {
-    setError("")
-    setLoading(true)
+      const data = await response.json();
 
-    try {
-      await signInWithPopup(auth, googleProvider)
+      if (!response.ok) {
+        throw new Error(data.message || 'Registration failed');
+      }
+
+      // Store the token in localStorage
+      localStorage.setItem('token', data.token);
+      
       router.push("/dashboard")
     } catch (err: any) {
       setError(err.message)
@@ -139,15 +140,6 @@ export function RegisterForm({
               <div className="flex flex-col gap-3">
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? "Creating account..." : "Register"}
-                </Button>
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  className="w-full"
-                  onClick={handleGoogleRegister}
-                  disabled={loading}
-                >
-                  {loading ? "Creating account..." : "Register with Google"}
                 </Button>
               </div>
             </div>

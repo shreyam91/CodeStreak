@@ -40,7 +40,7 @@ export async function POST(request: Request) {
 
     // Parse duration in minutes
     let durationMinutes: number | null = null;
-    const durationMatch = text.toLowerCase().match(/within\s+(\d+)\s*(minute|min|hour|hr)/);
+    const durationMatch = text.toLowerCase().match(/within \s+(\d+)\s*(minute|min|hour|hr)/);
 
     if (durationMatch) {
       const amount = parseInt(durationMatch[1], 10);

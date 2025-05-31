@@ -2,19 +2,10 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { FaPlay, FaPause, FaRedo, FaCheckCircle } from 'react-icons/fa';
-
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-} from 'chart.js';
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
+import toast, { Toaster } from 'react-hot-toast';
 
-// Register chart components
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 interface SessionEntry {
@@ -25,6 +16,10 @@ interface SessionEntry {
 }
 
 const PomodoroTimer: React.FC = () => {
+  const sessionLoggedRef = useRef(false);
+const postSessionActionRef = useRef<() => void>(() => {});
+
+
   const [hasSessionEnded, setHasSessionEnded] = useState(false);
 
   const [topic, setTopic] = useState<string>('');
@@ -44,53 +39,87 @@ const PomodoroTimer: React.FC = () => {
 
   // Timer countdown & session end logic
   useEffect(() => {
-    if (isRunning) {
-      intervalRef.current = setInterval(() => {
-        setSecondsLeft((prev) => {
-          if (prev <= 1 && !hasSessionEnded) {
-            clearInterval(intervalRef.current as NodeJS.Timeout);
-            setIsRunning(false);
-            setHasSessionEnded(true);
+  if (isRunning) {
+    intervalRef.current = setInterval(() => {
+      setSecondsLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(intervalRef.current as NodeJS.Timeout);
+          setIsRunning(false);
+          if (!sessionLoggedRef.current) {
+            sessionLoggedRef.current = true;
 
             const sessionType = isBreak ? 'Break' : 'Work';
             const duration = `${isBreak ? breakMinutes : workMinutes} min`;
             const timestamp = new Date().toISOString();
 
-            setSessionHistory((prevHistory) => [
-              ...prevHistory,
+            setSessionHistory((prev) => [
+              ...prev,
               { type: sessionType, duration, timestamp, topic: topic || 'No topic' },
             ]);
 
-            setTimeout(() => {
+            // Set post-session actions to run once outside this callback
+            postSessionActionRef.current = () => {
               if (!isBreak) {
-                const takeBreak = confirm('Work session complete! Time for a break?');
-                if (takeBreak) {
-                  setIsBreak(true);
-                  setSecondsLeft(breakMinutes * 60);
-                  setIsRunning(true);
-                  setHasSessionEnded(false);
-                } else {
-                  setHasSessionEnded(false);
-                }
+                toast((t) => (
+                  <span>
+                    Work session complete! Start a break?
+                    <div className="mt-2 flex justify-end gap-2">
+                      <button
+                        onClick={() => {
+                          toast.dismiss(t.id);
+                          setIsBreak(true);
+                          setSecondsLeft(breakMinutes * 60);
+                          setIsRunning(true);
+                          sessionLoggedRef.current = false;
+                        }}
+                        className="px-2 py-1 bg-green-500 text-white rounded"
+                      >
+                        Yes
+                      </button>
+                      <button
+                        onClick={() => {
+                          toast.dismiss(t.id);
+                          sessionLoggedRef.current = false;
+                        }}
+                        className="px-2 py-1 bg-red-500 text-white rounded"
+                      >
+                        No
+                      </button>
+                    </div>
+                  </span>
+                ));
               } else {
-                alert('Break over! Ready for another session?');
+                toast.success('Break over! Ready for another session?', {
+                  duration: 5000,
+                  icon: '🍅',
+                });
                 setIsBreak(false);
                 setSecondsLeft(workMinutes * 60);
-                setHasSessionEnded(false);
+                sessionLoggedRef.current = false;
               }
-            }, 100);
-
-            return 0;
+            };
           }
-          return prev - 1;
-        });
-      }, 1000);
-    }
+          return 0;
+        }
 
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, [isRunning, isBreak, hasSessionEnded, breakMinutes, workMinutes, topic]);
+        return prev - 1;
+      });
+    }, 1000);
+  }
+
+  return () => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
+  };
+}, [isRunning, isBreak, breakMinutes, workMinutes]);
+
+useEffect(() => {
+  if (!isRunning && sessionLoggedRef.current) {
+    // Run once after session ends
+    postSessionActionRef.current?.();
+  }
+}, [isRunning]);
+
+
 
   const formatTime = (totalSeconds: number): string => {
     const mins = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
@@ -98,19 +127,16 @@ const PomodoroTimer: React.FC = () => {
     return `${mins}:${secs}`;
   };
 
-  // Helper to check if two dates are the same calendar day
   const isSameDay = (d1: Date, d2: Date) =>
     d1.getFullYear() === d2.getFullYear() &&
     d1.getMonth() === d2.getMonth() &&
     d1.getDate() === d2.getDate();
 
-  // Filter only today's sessions
   const today = new Date();
   const todaySessions = sessionHistory.filter((session) =>
     isSameDay(new Date(session.timestamp), today)
   );
 
-  // Group today's sessions by topic and sum durations
   const topicTimeMapToday: { [topic: string]: number } = {};
   todaySessions.forEach((session) => {
     const time = parseInt(session.duration) || 0;
@@ -126,7 +152,7 @@ const PomodoroTimer: React.FC = () => {
       {
         label: 'Time Spent (minutes)',
         data: Object.values(topicTimeMapToday),
-        backgroundColor: 'rgba(59, 130, 246, 0.6)', // Tailwind blue-500
+        backgroundColor: 'rgba(59, 130, 246, 0.6)',
         borderRadius: 5,
       },
     ],
@@ -154,6 +180,8 @@ const PomodoroTimer: React.FC = () => {
 
   return (
     <div className="max-w-lg mx-auto p-6 bg-white rounded-lg shadow-lg">
+      <Toaster position="top-center" reverseOrder={false} />
+
       <h1 className="text-3xl font-semibold text-center mb-4">
         {isBreak ? 'Break Time' : 'Pomodoro Timer'}
       </h1>
