@@ -21,10 +21,18 @@ import {
 } from "@/components/ui/sidebar";
 import { Textarea } from "@/components/ui/textarea";
 import YearStreakChart from "@/components/YearStreakChart"; // <-- Import here
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 export default function Page() {
-  // const { streak, loggedToday, incrementStreak } = useStreak();
-const { streak, loggedToday, incrementStreak, history } = useStreak();
+  const { streak, loggedToday, incrementStreak, history, loading } = useStreak();
+
+  // Debug logging
+  console.log('Streak Data:', {
+    streak,
+    loggedToday,
+    history,
+    loading
+  });
 
   // Mock data generation inside the page
   // const generateMockActivityData = () => {
@@ -49,7 +57,7 @@ const { streak, loggedToday, incrementStreak, history } = useStreak();
   // };
 
   return (
-    <>
+    <ProtectedRoute>
       <SidebarProvider>
         <AppSidebar />
         <SidebarInset>
@@ -80,13 +88,14 @@ const { streak, loggedToday, incrementStreak, history } = useStreak();
           if (e.key === "Enter" || e.key === " ") incrementStreak();
         }}
       >
-        {loggedToday ? (
-  <HiFire size={20} />
-) : (
-  <HiOutlineFire size={20} />
-)}
-
-        <span>{streak}</span>
+        {loading ? (
+          <div className="h-5 w-5 animate-spin rounded-full border-2 border-red-500 border-t-transparent"></div>
+        ) : loggedToday ? (
+          <HiFire size={20} />
+        ) : (
+          <HiOutlineFire size={20} />
+        )}
+        <span>{loading ? "..." : streak}</span>
       </div>
     </header>
     <div className="ml-5 flex space-x-4 ">
@@ -103,10 +112,18 @@ const { streak, loggedToday, incrementStreak, history } = useStreak();
           {/* Add YearStreakChart here */}
           <div className="mt-8 bg-white p-6 rounded-lg shadow-md max-w">
             <h2 className="text-xl font-semibold mb-4">Year Streak Activity</h2>
-<YearStreakChart activityData={history} />
+            {loading ? (
+              <div className="flex justify-center items-center h-48">
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <YearStreakChart activityData={history} />
+              </div>
+            )}
           </div>
         </SidebarInset>
       </SidebarProvider>
-    </>
+    </ProtectedRoute>
   );
 }

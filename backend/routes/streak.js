@@ -18,7 +18,21 @@ router.post('/update', auth, async (req, res) => {
 
     // Check if user completed a task today
     if (lastCompleted && lastCompleted.getTime() === today.getTime()) {
-      return res.json(user.streak);
+      // Generate activity data for the response
+      const activityData = {};
+      if (user.streak.lastCompleted) {
+        const lastCompleted = new Date(user.streak.lastCompleted);
+        for (let i = 0; i < user.streak.current; i++) {
+          const date = new Date(lastCompleted);
+          date.setDate(date.getDate() - i);
+          const dateKey = date.toISOString().split('T')[0];
+          activityData[dateKey] = user.streak.current - i;
+        }
+      }
+      return res.json({
+        ...user.streak,
+        activityData
+      });
     }
 
     // Check if user completed a task yesterday
@@ -39,7 +53,22 @@ router.post('/update', auth, async (req, res) => {
     user.streak.lastCompleted = today;
     await user.save();
 
-    res.json(user.streak);
+    // Generate activity data for the response
+    const activityData = {};
+    if (user.streak.lastCompleted) {
+      const lastCompleted = new Date(user.streak.lastCompleted);
+      for (let i = 0; i < user.streak.current; i++) {
+        const date = new Date(lastCompleted);
+        date.setDate(date.getDate() - i);
+        const dateKey = date.toISOString().split('T')[0];
+        activityData[dateKey] = user.streak.current - i;
+      }
+    }
+
+    res.json({
+      ...user.streak,
+      activityData
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -48,7 +77,25 @@ router.post('/update', auth, async (req, res) => {
 // Get streak
 router.get('/', auth, async (req, res) => {
   try {
-    res.json(req.user.streak);
+    const user = req.user;
+    const streak = user.streak;
+
+    // Generate activity data for the year streak chart
+    const activityData = {};
+    if (streak.lastCompleted) {
+      const lastCompleted = new Date(streak.lastCompleted);
+      for (let i = 0; i < streak.current; i++) {
+        const date = new Date(lastCompleted);
+        date.setDate(date.getDate() - i);
+        const dateKey = date.toISOString().split('T')[0];
+        activityData[dateKey] = streak.current - i;
+      }
+    }
+
+    res.json({
+      ...streak,
+      activityData
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

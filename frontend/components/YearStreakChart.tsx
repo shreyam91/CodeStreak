@@ -53,6 +53,9 @@ const YearStreakChart: React.FC<YearStreakChartProps> = ({
   year = new Date().getFullYear(),
   activityData,
 }) => {
+  // Debug logging
+  console.log('YearStreakChart props:', { year, activityData });
+
   // Year start and end
   const yearStart = startOfYear(new Date(year, 0, 1));
   const yearEnd = endOfYear(yearStart);
@@ -66,6 +69,15 @@ const YearStreakChart: React.FC<YearStreakChartProps> = ({
 
   // Generate all days from firstSunday to yearEnd (cover all weeks fully)
   const allDays = eachDayOfInterval({ start: firstSunday, end: yearEnd });
+
+  // Debug logging for grid generation
+  console.log('Grid data:', {
+    yearStart: yearStart.toISOString(),
+    yearEnd: yearEnd.toISOString(),
+    totalWeeks,
+    firstSunday: firstSunday.toISOString(),
+    allDaysCount: allDays.length
+  });
 
   // Tooltip state and positioning
   const [tooltip, setTooltip] = useState<{
@@ -86,11 +98,16 @@ const YearStreakChart: React.FC<YearStreakChartProps> = ({
     count: number
   ) => {
     const rect = e.currentTarget.getBoundingClientRect();
+    const formattedDate = format(date, "MMMM dd, yyyy");
+    const streakText = count > 0 
+      ? `🔥 ${count} day${count !== 1 ? 's' : ''} streak`
+      : 'No activity';
+    
     setTooltip({
       visible: true,
       x: rect.left + rect.width / 2 + window.scrollX,
       y: rect.top - 10 + window.scrollY,
-      content: `${format(date, "MMM dd, yyyy")}: ${count} activity${count !== 1 ? "s" : ""}`,
+      content: `${formattedDate}\n${streakText}`,
     });
   };
 
@@ -118,16 +135,16 @@ const YearStreakChart: React.FC<YearStreakChartProps> = ({
   }, [firstSunday, totalWeeks, yearStart, yearEnd]);
 
   return (
-    <div className="relative select-none">
+    <div className="relative select-none max-w-[800px] mx-auto">
       {/* Month Labels */}
-      <div className="flex ml-10 mb-1">
+      <div className="flex ml-8 mb-1">
         {Array.from({ length: totalWeeks }).map((_, i) => {
           const label = monthPositions.find((m) => m.weekIndex === i);
           return (
             <div
               key={i}
-              style={{ width: 18, height: 18 }}
-              className="text-xs font-semibold text-gray-500 text-center"
+              style={{ width: 16, height: 16 }}
+              className="text-[10px] font-semibold text-gray-500 text-center"
             >
               {label ? label.month : ""}
             </div>
@@ -137,18 +154,16 @@ const YearStreakChart: React.FC<YearStreakChartProps> = ({
 
       <div className="flex">
         {/* Day Labels */}
-        <div className="flex flex-col mr-2 h-[126px] justify-between text-xs text-gray-500 font-medium leading-none" aria-hidden="true">
-          {/* Show only some day labels for spacing like GitHub (Sun, Tue, Thu, Sat) */}
-          <span>Sun</span>
-          <span>Tue</span>
-          <span>Thu</span>
-          <span>Sat</span>
+        <div className="flex flex-col mr-2 h-[112px] justify-between text-[10px] text-gray-500 font-medium leading-none" aria-hidden="true">
+          {dayLabels.map((day, index) => (
+            <span key={day} style={{ height: 16 }}>{day}</span>
+          ))}
         </div>
 
         {/* Heatmap grid */}
-        <div className="flex space-x-1">
+        <div className="flex space-x-[2px]">
           {Array.from({ length: totalWeeks }).map((_, weekIndex) => (
-            <div key={weekIndex} className="flex flex-col space-y-1">
+            <div key={weekIndex} className="flex flex-col space-y-[2px]">
               {Array.from({ length: 7 }).map((_, dayIndex) => {
                 const currentDate = addDays(firstSunday, weekIndex * 7 + dayIndex);
 
@@ -184,7 +199,7 @@ const isRecentlyUpdated = isToday && count > 0;
                       inYear && handleMouseEnter(e, currentDate, count)
                     }
                     onBlur={handleMouseLeave}
-                    className={`w-5 h-5 rounded-sm cursor-pointer transition-transform duration-300 ease-in-out transform
+                    className={`w-4 h-4 rounded-sm cursor-pointer transition-transform duration-300 ease-in-out transform
   ${inYear ? bgClass : "bg-transparent"}
   ${isRecentlyUpdated ? "animate-ping-slow" : ""}
 `}
@@ -207,15 +222,19 @@ const isRecentlyUpdated = isToday && count > 0;
             left: tooltip.x,
             position: "absolute",
             transform: "translate(-50%, -100%)",
-            backgroundColor: "rgba(31, 41, 55, 0.9)", // gray-900 with opacity
+            backgroundColor: "rgba(31, 41, 55, 0.95)",
             color: "white",
-            padding: "4px 8px",
-            borderRadius: 4,
-            fontSize: 12,
+            padding: "8px 12px",
+            borderRadius: "6px",
+            fontSize: "13px",
             pointerEvents: "none",
             zIndex: 9999,
-            whiteSpace: "nowrap",
+            whiteSpace: "pre-line",
             userSelect: "none",
+            boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+            border: "1px solid rgba(255, 255, 255, 0.1)",
+            textAlign: "center",
+            minWidth: "140px",
           }}
         >
           {tooltip.content}

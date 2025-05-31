@@ -17,11 +17,6 @@ api.interceptors.request.use(
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
-    } else {
-      // If no token is found and the request is not for auth endpoints, redirect to login
-      if (!config.url?.includes('/auth/')) {
-        window.location.href = '/login';
-      }
     }
     return config;
   },
@@ -37,8 +32,11 @@ api.interceptors.response.use(
     if (error.response) {
       // Handle 401 Unauthorized errors
       if (error.response.status === 401) {
-        localStorage.removeItem('token');
-        window.location.href = '/login';
+        // Only redirect to login if we're not already on the login page
+        if (!window.location.pathname.includes('/login')) {
+          localStorage.removeItem('token');
+          window.location.href = '/login';
+        }
         return Promise.reject(new Error('Session expired. Please login again.'));
       }
       // The request was made and the server responded with a status code

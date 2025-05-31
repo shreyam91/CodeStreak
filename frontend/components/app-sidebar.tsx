@@ -1,5 +1,7 @@
-import * as React from "react"
+'use client'
 
+import * as React from "react"
+import { useAuth } from "@/contexts/AuthContext"
 import { Calendars } from "@/components/calendars"
 import { DatePicker } from "@/components/date-picker"
 import { NavUser } from "@/components/nav-user"
@@ -15,13 +17,8 @@ import {
   SidebarSeparator,
 } from "@/components/ui/sidebar"
 
-// This is sample data.
-const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
+// Sample calendar data
+const calendarData = {
   calendars: [
     {
       name: "My Calendars",
@@ -39,15 +36,28 @@ const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { user } = useAuth()
+
+  // Format user data for NavUser component
+  const userData = user ? {
+    name: user.name,
+    email: user.email,
+    avatar: `/avatars/${user.name.toLowerCase().replace(/\s+/g, '-')}.jpg`, // Fallback avatar path
+  } : null
+
+  if (!userData) {
+    return null
+  }
+
   return (
     <Sidebar {...props}>
       <SidebarHeader className="border-sidebar-border h-16 border-b">
-        <NavUser user={data.user} />
+        <NavUser user={userData} />
       </SidebarHeader>
       <SidebarContent>
         <DatePicker />
         <SidebarSeparator className="mx-0" />
-        <Calendars calendars={data.calendars} />
+        <Calendars calendars={calendarData.calendars} />
       </SidebarContent>
       <SidebarRail />
     </Sidebar>

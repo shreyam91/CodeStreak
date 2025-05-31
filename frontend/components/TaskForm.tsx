@@ -4,6 +4,7 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { tasksApi } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
+import useToast from "@/hooks/use-toast";
 
 const TaskForm = () => {
   const [title, setTitle] = React.useState<string>("");
@@ -19,6 +20,7 @@ const TaskForm = () => {
   const [submitError, setSubmitError] = React.useState<string | null>(null);
   const { user } = useAuth();
   const router = useRouter();
+  const { toast } = useToast();
 
   // Redirect if not authenticated
   React.useEffect(() => {
@@ -131,13 +133,22 @@ const TaskForm = () => {
       setWithinTime("");
       setPriority("mid");
       
-      // Show success message
-      alert("Task created successfully!");
+      // Show success message using toast
+      toast({
+        title: "Task Created",
+        description: "Your task has been created successfully!",
+        variant: "success",
+      });
     } catch (error: any) {
       if (error.message === 'Session expired. Please login again.') {
         router.push('/login');
       } else {
         setSubmitError(error.message || 'Failed to create task');
+        toast({
+          title: "Error",
+          description: error.message || 'Failed to create task',
+          variant: "destructive",
+        });
       }
     } finally {
       setIsLoading(false);

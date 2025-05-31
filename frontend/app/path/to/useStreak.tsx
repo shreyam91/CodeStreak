@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
-import toast from "react-hot-toast";
-
-const STORAGE_KEY = "streak_data";
+import useToast from "@/hooks/use-toast";
+import { streakApi } from "@/lib/api";
 
 type StreakData = {
-  history: {};
-  count: number;
-  lastDate: string; // yyyy-mm-dd
+  current: number;
+  longest: number;
+  lastCompleted: string;
+  activityData?: { [date: string]: number };
 };
 
 const formatDate = (date: Date) => date.toISOString().split("T")[0];
@@ -17,110 +17,58 @@ const daysBetween = (date1: string, date2: string) => {
   return Math.floor(diffTime / (1000 * 60 * 60 * 24));
 };
 
-// export function useStreak() {
-//   const [streak, setStreak] = useState<number>(0);
-//   const [lastDate, setLastDate] = useState<string>("");
-//   const [today, setToday] = useState<string>(formatDate(new Date()));
-
-//   useEffect(() => {
-//     const now = new Date();
-//     const nextMidnight = new Date(
-//       now.getFullYear(),
-//       now.getMonth(),
-//       now.getDate() + 1,
-//       0, 0, 0, 0
-//     );
-//     const msUntilMidnight = nextMidnight.getTime() - now.getTime();
-
-//     const timer = setTimeout(() => {
-//       setToday(formatDate(new Date()));
-//       toast("A new day has started! Don't forget to log your streak 🔥", {
-//         icon: '🔥',
-//       });
-//     }, msUntilMidnight + 1000);
-
-//     return () => clearTimeout(timer);
-//   }, [today]);
-
-//   useEffect(() => {
-//     const stored = localStorage.getItem(STORAGE_KEY);
-//     if (stored) {
-//       const data: StreakData = JSON.parse(stored);
-//       setStreak(data.count);
-//       setLastDate(data.lastDate);
-//     }
-//   }, []);
-
-//   useEffect(() => {
-//     if (streak > 0 && lastDate) {
-//       localStorage.setItem(STORAGE_KEY, JSON.stringify({ count: streak, lastDate }));
-//     } else {
-//       localStorage.removeItem(STORAGE_KEY);
-//     }
-//   }, [streak, lastDate]);
-
-//   const loggedToday = lastDate === today;
-
-//   useEffect(() => {
-//     if (lastDate) {
-//       const diff = daysBetween(lastDate, today);
-//       if (diff > 1) {
-//         setStreak(0);
-//         setLastDate("");
-//         localStorage.removeItem(STORAGE_KEY);
-//         toast.error("You missed a day! Your streak has been reset.");
-//       }
-//     }
-//   }, [today, lastDate]);
-
-//   const incrementStreak = () => {
-//     if (loggedToday) {
-//       toast("You already logged your streak for today!");
-//       return;
-//     }
-
-//     if (!lastDate) {
-//       setStreak(1);
-//       setLastDate(today);
-//       toast.success("Streak started! 🔥");
-//       return;
-//     }
-
-//     const diff = daysBetween(lastDate, today);
-
-//     if (diff === 1) {
-//       setStreak((prev) => prev + 1);
-//       setLastDate(today);
-//       toast.success("Great! Streak incremented! 🔥");
-//     } else if (diff > 1) {
-//       if (confirm("You missed days! Streak will reset. Start over?")) {
-//         setStreak(1);
-//         setLastDate(today);
-//         toast.success("Streak reset and started over! 🔥");
-//       }
-//     } else {
-//       setStreak(1);
-//       setLastDate(today);
-//       toast.success("Streak started! 🔥");
-//     }
-//   };
-
-//   const resetStreak = () => {
-//     setStreak(0);
-//     setLastDate("");
-//     localStorage.removeItem(STORAGE_KEY);
-//     toast("Streak reset.");
-//   };
-
-//   return { streak, lastDate, today, loggedToday, incrementStreak, resetStreak };
-// }
-
 export function useStreak() {
   const [streak, setStreak] = useState<number>(0);
   const [lastDate, setLastDate] = useState<string>("");
   const [history, setHistory] = useState<{ [date: string]: number }>({});
   const [today, setToday] = useState<string>(formatDate(new Date()));
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
+  // Load streak data from API
+  useEffect(() => {
+    const loadStreak = async () => {
+      try {
+        setLoading(true);
+        const data = await streakApi.get();
+        console.log('API Response:', data);
+
+        setStreak(data.current);
+        setLastDate(data.lastCompleted ? formatDate(new Date(data.lastCompleted)) : "");
+        
+        // Use activityData from API if available, otherwise generate from streak
+        if (data.activityData) {
+          console.log('Using API activity data:', data.activityData);
+          setHistory(data.activityData);
+        } else {
+          // Generate history from streak data
+          const historyData: { [date: string]: number } = {};
+          if (data.lastCompleted) {
+            const lastCompleted = new Date(data.lastCompleted);
+            for (let i = 0; i < data.current; i++) {
+              const date = new Date(lastCompleted);
+              date.setDate(date.getDate() - i);
+              historyData[formatDate(date)] = data.current - i;
+            }
+          }
+          console.log('Generated history data:', historyData);
+          setHistory(historyData);
+        }
+      } catch (error) {
+        console.error('Failed to load streak:', error);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to load streak data. Please try again.",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadStreak();
+  }, [toast]);
+
+  // Update 'today' at midnight rollover
   useEffect(() => {
     const now = new Date();
     const nextMidnight = new Date(
@@ -133,86 +81,57 @@ export function useStreak() {
 
     const timer = setTimeout(() => {
       setToday(formatDate(new Date()));
-      toast("A new day has started! Don't forget to log your streak 🔥", {
-        icon: "🔥",
+      toast({
+        title: "New Day Started!",
+        description: "Don't forget to log your streak 🔥",
+        variant: "success",
       });
     }, msUntilMidnight + 1000);
 
     return () => clearTimeout(timer);
-  }, [today]);
-
-  useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      const data: StreakData = JSON.parse(stored);
-      setStreak(data.count);
-      setLastDate(data.lastDate);
-      setHistory(data.history || {});
-    }
-  }, []);
-
-  useEffect(() => {
-    if (streak > 0 && lastDate) {
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify({ count: streak, lastDate, history })
-      );
-    } else {
-      localStorage.removeItem(STORAGE_KEY);
-    }
-  }, [streak, lastDate, history]);
+  }, [today, toast]);
 
   const loggedToday = lastDate === today;
 
-  useEffect(() => {
-    if (lastDate) {
-      const diff = daysBetween(lastDate, today);
-      if (diff > 1) {
-        setStreak(0);
-        setLastDate("");
-        setHistory((prev) => {
-          const updated = { ...prev };
-          delete updated[today];
-          return updated;
-        });
-        localStorage.removeItem(STORAGE_KEY);
-        toast.error("You missed a day! Your streak has been reset.");
-      }
-    }
-  }, [today, lastDate]);
-
-  const incrementStreak = () => {
+  const incrementStreak = async () => {
     if (loggedToday) {
-      toast("You already logged your streak for today!");
+      toast({
+        title: "Already Logged",
+        description: "You already logged your streak for today!",
+        variant: "warning",
+      });
       return;
     }
 
-    let newCount = 1;
-
-    if (!lastDate) {
-      newCount = 1;
-    } else {
-      const diff = daysBetween(lastDate, today);
-      if (diff === 1) {
-        newCount = streak + 1;
-      } else if (diff > 1) {
-        if (!confirm("You missed days! Streak will reset. Start over?")) return;
-        newCount = 1;
+    try {
+      const data = await streakApi.update();
+      console.log('Update API Response:', data);
+      
+      setStreak(data.current);
+      setLastDate(formatDate(new Date(data.lastCompleted)));
+      
+      // Update history with new data
+      if (data.activityData) {
+        setHistory(data.activityData);
+      } else {
+        const newHistory = { ...history };
+        newHistory[today] = data.current;
+        setHistory(newHistory);
       }
+
+      toast({
+        title: data.current === 1 ? "Streak Started! 🔥" : "Streak Incremented! 🔥",
+        description: `You're now on a ${data.current} day streak!`,
+        variant: "success",
+      });
+    } catch (error) {
+      console.error('Failed to update streak:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to update streak. Please try again.",
+      });
     }
-
-    setStreak(newCount);
-    setLastDate(today);
-    setHistory((prev) => ({ ...prev, [today]: newCount }));
-    toast.success(newCount === 1 ? "Streak started! 🔥" : "Streak incremented! 🔥");
-  };
-
-  const resetStreak = () => {
-    setStreak(0);
-    setLastDate("");
-    setHistory({});
-    localStorage.removeItem(STORAGE_KEY);
-    toast("Streak reset.");
   };
 
   return {
@@ -221,7 +140,7 @@ export function useStreak() {
     today,
     loggedToday,
     incrementStreak,
-    resetStreak,
-    history, // <== this is what you'll pass to YearStreakChart
+    history,
+    loading
   };
 }

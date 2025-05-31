@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { authApi, User } from '@/lib/api';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 
 interface AuthContextType {
   user: User | null;
@@ -20,6 +20,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     checkAuth();
@@ -30,6 +31,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const token = localStorage.getItem('token');
       if (!token) {
         setLoading(false);
+        // Only redirect to login if we're not already on the login page
+        // and we're trying to access a protected route
+        if (!pathname?.includes('/login') && !pathname?.includes('/register')) {
+          router.push('/login');
+        }
         return;
       }
 
@@ -41,6 +47,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error.response?.status === 401) {
         localStorage.removeItem('token');
         setUser(null);
+        // Only redirect to login if we're not already on the login page
+        if (!pathname?.includes('/login')) {
+          router.push('/login');
+        }
       }
       setError(error.response?.data?.message || 'Authentication failed');
     } finally {
@@ -57,6 +67,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       localStorage.setItem('token', token);
       setUser(user);
+      router.push('/dashboard');
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || 'Login failed';
       setError(errorMessage);
@@ -73,6 +84,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       localStorage.setItem('token', token);
       setUser(user);
+      router.push('/dashboard');
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || 'Registration failed';
       setError(errorMessage);
@@ -84,7 +96,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem('token');
     setUser(null);
     setError(null);
-    router.push('/');
+    router.push('/login');
   };
 
   return (
