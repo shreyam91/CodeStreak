@@ -32,11 +32,11 @@ api.interceptors.response.use(
     if (error.response) {
       // Handle 401 Unauthorized errors
       if (error.response.status === 401) {
-        // Only redirect to login if we're not already on the login page
-        if (!window.location.pathname.includes('/login')) {
-          localStorage.removeItem('token');
-          window.location.href = '/login';
-        }
+        // DEV BYPASS
+        // if (!window.location.pathname.includes('/login')) {
+        //   localStorage.removeItem('token');
+        //   window.location.href = '/login';
+        // }
         return Promise.reject(new Error('Session expired. Please login again.'));
       }
       // The request was made and the server responded with a status code

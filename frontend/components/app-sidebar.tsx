@@ -21,16 +21,25 @@ import {
 const calendarData = {
   calendars: [
     {
-      name: "My Calendars",
-      items: ["Personal", "Work", "Family"],
+      name: "Home",
+      items: [
+        { name: "Dashboard", url: "/dashboard" }
+      ],
     },
     {
-      name: "Favorites",
-      items: ["Holidays", "Birthdays"],
+      name: "My Study",
+      items: [
+        { name: "Machine Coding", url: "/dashboard/machine-coding" },
+        { name: "DSA", url: "/dashboard/dsa" },
+        { name: "System Design", url: "/dashboard/system-design" },
+        { name: "Placement Preparation", url: "/dashboard/placement-prep" }
+      ],
     },
     {
       name: "Other",
-      items: ["Travel", "Reminders", "Deadlines"],
+      items: [
+        { name: "Travel", url: "/dashboard/travel" }
+      ],
     },
   ],
 }

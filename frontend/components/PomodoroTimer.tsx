@@ -1,288 +1,151 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { FaPlay, FaPause, FaRedo, FaCheckCircle } from 'react-icons/fa';
-import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
-import { Bar } from 'react-chartjs-2';
-import toast, { Toaster } from 'react-hot-toast';
-
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
-
-interface SessionEntry {
-  type: string;
-  duration: string;
-  timestamp: string;
-  topic: string;
-}
+import { Play, Pause, RotateCcw, Coffee, Briefcase, Plus, Minus } from 'lucide-react';
 
 const PomodoroTimer: React.FC = () => {
-  const sessionLoggedRef = useRef(false);
-const postSessionActionRef = useRef<() => void>(() => {});
-
-
-  const [hasSessionEnded, setHasSessionEnded] = useState(false);
-
-  const [topic, setTopic] = useState<string>('');
-  const [workMinutes, setWorkMinutes] = useState<number>(25);
-  const [breakMinutes, setBreakMinutes] = useState<number>(5);
-  const [secondsLeft, setSecondsLeft] = useState<number>(25 * 60);
+  const [mode, setMode] = useState<'work' | 'break'>('work');
+  const [workDuration, setWorkDuration] = useState<number>(25);
+  const [breakDuration, setBreakDuration] = useState<number>(5);
+  const [timeLeft, setTimeLeft] = useState<number>(25 * 60);
   const [isRunning, setIsRunning] = useState<boolean>(false);
-  const [isBreak, setIsBreak] = useState<boolean>(false);
-  const [sessionHistory, setSessionHistory] = useState<SessionEntry[]>([]);
-
+  
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Reset timer when work/break duration or break state changes
   useEffect(() => {
-    setSecondsLeft(isBreak ? breakMinutes * 60 : workMinutes * 60);
-  }, [workMinutes, breakMinutes, isBreak]);
-
-  // Timer countdown & session end logic
-  useEffect(() => {
-  if (isRunning) {
-    intervalRef.current = setInterval(() => {
-      setSecondsLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(intervalRef.current as NodeJS.Timeout);
-          setIsRunning(false);
-          if (!sessionLoggedRef.current) {
-            sessionLoggedRef.current = true;
-
-            const sessionType = isBreak ? 'Break' : 'Work';
-            const duration = `${isBreak ? breakMinutes : workMinutes} min`;
-            const timestamp = new Date().toISOString();
-
-            setSessionHistory((prev) => [
-              ...prev,
-              { type: sessionType, duration, timestamp, topic: topic || 'No topic' },
-            ]);
-
-            // Set post-session actions to run once outside this callback
-            postSessionActionRef.current = () => {
-              if (!isBreak) {
-                toast((t) => (
-                  <span>
-                    Work session complete! Start a break?
-                    <div className="mt-2 flex justify-end gap-2">
-                      <button
-                        onClick={() => {
-                          toast.dismiss(t.id);
-                          setIsBreak(true);
-                          setSecondsLeft(breakMinutes * 60);
-                          setIsRunning(true);
-                          sessionLoggedRef.current = false;
-                        }}
-                        className="px-2 py-1 bg-green-500 text-white rounded"
-                      >
-                        Yes
-                      </button>
-                      <button
-                        onClick={() => {
-                          toast.dismiss(t.id);
-                          sessionLoggedRef.current = false;
-                        }}
-                        className="px-2 py-1 bg-red-500 text-white rounded"
-                      >
-                        No
-                      </button>
-                    </div>
-                  </span>
-                ));
-              } else {
-                toast.success('Break over! Ready for another session?', {
-                  duration: 5000,
-                  icon: '🍅',
-                });
-                setIsBreak(false);
-                setSecondsLeft(workMinutes * 60);
-                sessionLoggedRef.current = false;
-              }
-            };
+    if (isRunning) {
+      intervalRef.current = setInterval(() => {
+        setTimeLeft((prev) => {
+          if (prev <= 1) {
+            setIsRunning(false);
+            if (intervalRef.current) clearInterval(intervalRef.current);
+            return 0;
           }
-          return 0;
-        }
-
-        return prev - 1;
-      });
-    }, 1000);
-  }
-
-  return () => {
-    if (intervalRef.current) clearInterval(intervalRef.current);
-  };
-}, [isRunning, isBreak, breakMinutes, workMinutes]);
-
-useEffect(() => {
-  if (!isRunning && sessionLoggedRef.current) {
-    // Run once after session ends
-    postSessionActionRef.current?.();
-  }
-}, [isRunning]);
-
-
-
-  const formatTime = (totalSeconds: number): string => {
-    const mins = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
-    const secs = String(totalSeconds % 60).padStart(2, '0');
-    return `${mins}:${secs}`;
-  };
-
-  const isSameDay = (d1: Date, d2: Date) =>
-    d1.getFullYear() === d2.getFullYear() &&
-    d1.getMonth() === d2.getMonth() &&
-    d1.getDate() === d2.getDate();
-
-  const today = new Date();
-  const todaySessions = sessionHistory.filter((session) =>
-    isSameDay(new Date(session.timestamp), today)
-  );
-
-  const topicTimeMapToday: { [topic: string]: number } = {};
-  todaySessions.forEach((session) => {
-    const time = parseInt(session.duration) || 0;
-    if (session.type === 'Work') {
-      if (!topicTimeMapToday[session.topic]) topicTimeMapToday[session.topic] = 0;
-      topicTimeMapToday[session.topic] += time;
+          return prev - 1;
+        });
+      }, 1000);
+    } else if (intervalRef.current) {
+      clearInterval(intervalRef.current);
     }
-  });
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [isRunning]);
 
-  const chartDataToday = {
-    labels: Object.keys(topicTimeMapToday),
-    datasets: [
-      {
-        label: 'Time Spent (minutes)',
-        data: Object.values(topicTimeMapToday),
-        backgroundColor: 'rgba(59, 130, 246, 0.6)',
-        borderRadius: 5,
-      },
-    ],
-  };
+  const toggleTimer = () => setIsRunning(!isRunning);
 
-  const chartOptions = {
-    responsive: true,
-    plugins: {
-      legend: { position: 'top' as const },
-      title: { display: true, text: "Today's Time Spent per Topic" },
-    },
-  };
-
-  const handleStartStop = (): void => {
-    setIsRunning(!isRunning);
-    if (!isRunning) setHasSessionEnded(false);
-  };
-
-  const handleReset = (): void => {
-    if (intervalRef.current) clearInterval(intervalRef.current);
+  const resetTimer = () => {
     setIsRunning(false);
-    setSecondsLeft(isBreak ? breakMinutes * 60 : workMinutes * 60);
-    setHasSessionEnded(false);
+    setTimeLeft(mode === 'work' ? workDuration * 60 : breakDuration * 60);
   };
+
+  const switchMode = (newMode: 'work' | 'break') => {
+    setMode(newMode);
+    setIsRunning(false);
+    setTimeLeft(newMode === 'work' ? workDuration * 60 : breakDuration * 60);
+  };
+
+  const adjustTime = (amount: number) => {
+    if (isRunning) return;
+    if (mode === 'work') {
+      const newDuration = Math.max(1, workDuration + amount);
+      setWorkDuration(newDuration);
+      setTimeLeft(newDuration * 60);
+    } else {
+      const newDuration = Math.max(1, breakDuration + amount);
+      setBreakDuration(newDuration);
+      setTimeLeft(newDuration * 60);
+    }
+  };
+
+  const formatTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+    const s = (seconds % 60).toString().padStart(2, '0');
+    return { m, s };
+  };
+
+  const totalCurrentSeconds = mode === 'work' ? workDuration * 60 : breakDuration * 60;
+  const progress = ((totalCurrentSeconds - timeLeft) / totalCurrentSeconds) * 100;
+  const { m, s } = formatTime(timeLeft);
 
   return (
-    <div className="max-w-lg mx-auto p-6 bg-white rounded-lg shadow-lg">
-      <Toaster position="top-center" reverseOrder={false} />
+    <div className="bg-gradient-to-br from-card to-muted/20 border border-border shadow-sm rounded-2xl p-5 w-full relative overflow-hidden group">
+      {/* Background Animated Glow */}
+      <div className={`absolute -top-20 -right-20 w-40 h-40 blur-3xl opacity-20 rounded-full transition-colors duration-1000 ${mode === 'work' ? 'bg-primary' : 'bg-green-500'}`}></div>
 
-      <h1 className="text-3xl font-semibold text-center mb-4">
-        {isBreak ? 'Break Time' : 'Pomodoro Timer'}
-      </h1>
-
-      <div className="text-4xl font-bold text-center mb-4">{formatTime(secondsLeft)}</div>
-
-      <div className="flex justify-center gap-4 mb-4">
-        {!isBreak ? (
-          <>
-            <label htmlFor="workInput" className="text-lg">
-              Work Minutes:
-            </label>
-            <input
-              id="workInput"
-              type="number"
-              min={1}
-              value={workMinutes}
-              onChange={(e) => {
-                setWorkMinutes(Number(e.target.value));
-                setIsRunning(false);
-                if (intervalRef.current) clearInterval(intervalRef.current);
-                setHasSessionEnded(false);
-              }}
-              className="w-20 p-2 border border-gray-300 rounded"
-            />
-          </>
-        ) : (
-          <>
-            <label htmlFor="breakInput" className="text-lg">
-              Break Minutes:
-            </label>
-            <input
-              id="breakInput"
-              type="number"
-              min={1}
-              value={breakMinutes}
-              onChange={(e) => {
-                setBreakMinutes(Number(e.target.value));
-                setIsRunning(false);
-                if (intervalRef.current) clearInterval(intervalRef.current);
-                setHasSessionEnded(false);
-              }}
-              className="w-20 p-2 border border-gray-300 rounded"
-            />
-          </>
-        )}
-      </div>
-
-      <div className="mb-4">
-        <label htmlFor="topic" className="block mb-1 font-medium">
-          Topic:
-        </label>
-        <input
-          type="text"
-          id="topic"
-          placeholder="e.g. Math - Algebra"
-          value={topic}
-          onChange={(e) => setTopic(e.target.value)}
-          className="w-full p-2 border border-gray-300 rounded"
-        />
-      </div>
-
-      <div className="flex justify-center gap-6 mb-4">
-        <button
-          onClick={handleStartStop}
-          className="p-3 bg-blue-500 text-white rounded-full hover:bg-blue-600"
+      {/* Header Toggles */}
+      <div className="flex gap-2 mb-6 relative z-10">
+        <button 
+          onClick={() => switchMode('work')}
+          className={`flex-1 py-1.5 px-3 text-xs font-bold rounded-full transition-all flex justify-center items-center gap-1.5 ${mode === 'work' ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20 scale-105' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`}
         >
-          {isRunning ? <FaPause /> : <FaPlay />}
+          <Briefcase size={14} /> Focus
         </button>
-        <button
-          onClick={handleReset}
-          className="p-3 bg-gray-500 text-white rounded-full hover:bg-gray-600"
+        <button 
+          onClick={() => switchMode('break')}
+          className={`flex-1 py-1.5 px-3 text-xs font-bold rounded-full transition-all flex justify-center items-center gap-1.5 ${mode === 'break' ? 'bg-green-500 text-white shadow-md shadow-green-500/20 scale-105' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`}
         >
-          <FaRedo />
+          <Coffee size={14} /> Relax
         </button>
       </div>
 
-      <div className="mt-6">
-        <h2 className="text-2xl font-semibold mb-2">Session History</h2>
-        <ul className="space-y-2 max-h-56 overflow-y-auto">
-          {sessionHistory.map((session, index) => (
-            <li key={index} className="flex items-start gap-2">
-              <FaCheckCircle className="text-green-500 mt-1" />
-              <div className="text-sm text-gray-700">
-                <div className="font-medium">{session.topic}</div>
-                <div>
-                  {session.type} – {session.duration} at{' '}
-                  {new Date(session.timestamp).toLocaleString()}
-                </div>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      {Object.keys(topicTimeMapToday).length > 0 && (
-        <div className="mt-10">
-          <h2 className="text-2xl font-semibold mb-4">Today's Progress Overview</h2>
-          <Bar data={chartDataToday} options={chartOptions} />
+      {/* Timer Display */}
+      <div className="flex items-center justify-between mb-6 relative z-10">
+        <button 
+          onClick={() => adjustTime(-5)} 
+          disabled={isRunning}
+          className="w-8 h-8 flex items-center justify-center rounded-full bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80 disabled:opacity-50 transition-all active:scale-90"
+        >
+          <Minus size={16} />
+        </button>
+        
+        <div className="flex flex-col items-center justify-center font-black tabular-nums tracking-tighter text-5xl">
+          <div className="flex items-baseline">
+            <span className={mode === 'work' ? 'text-primary' : 'text-green-500'}>{m}</span>
+            <span className="text-foreground animate-pulse">:</span>
+            <span className="text-foreground">{s}</span>
+          </div>
         </div>
-      )}
+
+        <button 
+          onClick={() => adjustTime(5)} 
+          disabled={isRunning}
+          className="w-8 h-8 flex items-center justify-center rounded-full bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80 disabled:opacity-50 transition-all active:scale-90"
+        >
+          <Plus size={16} />
+        </button>
+      </div>
+
+      {/* Controls & Progress Bar */}
+      <div className="relative z-10">
+        <div className="flex gap-3 mb-4">
+          <button 
+            onClick={toggleTimer}
+            className={`flex-1 py-2.5 flex items-center justify-center rounded-xl text-white font-bold text-sm transition-all active:scale-95 shadow-lg ${isRunning ? 'bg-red-500 hover:bg-red-600 shadow-red-500/20' : (mode === 'work' ? 'bg-primary hover:bg-primary/90 shadow-primary/20' : 'bg-green-500 hover:bg-green-600 shadow-green-500/20')}`}
+          >
+            {isRunning ? (
+              <><Pause fill="currentColor" size={16} className="mr-1.5" /> Pause</>
+            ) : (
+              <><Play fill="currentColor" size={16} className="mr-1.5" /> Start</>
+            )}
+          </button>
+          <button 
+            onClick={resetTimer}
+            className="w-12 flex items-center justify-center rounded-xl bg-muted border border-border/50 text-muted-foreground hover:bg-muted/80 hover:text-foreground transition-all active:scale-95"
+            title="Reset Timer"
+          >
+            <RotateCcw size={16} />
+          </button>
+        </div>
+
+        {/* Minimal Progress Line */}
+        <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+          <div 
+            className={`h-full transition-all duration-1000 ease-linear rounded-full ${mode === 'work' ? 'bg-primary' : 'bg-green-500'}`}
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+      </div>
     </div>
   );
 };

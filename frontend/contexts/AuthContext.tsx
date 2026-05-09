@@ -29,30 +29,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const checkAuth = async () => {
     try {
       const token = localStorage.getItem('token');
-      if (!token) {
-        setLoading(false);
-        // Only redirect to login if we're not already on the login page
-        // and we're trying to access a protected route
+      const devUser = localStorage.getItem('dev_user');
+      if (token && devUser) {
+        setUser(JSON.parse(devUser));
+      } else {
         if (!pathname?.includes('/login') && !pathname?.includes('/register')) {
           router.push('/login');
         }
-        return;
       }
-
-      const userData = await authApi.getProfile();
-      setUser(userData);
     } catch (error: any) {
       console.error('Auth check failed:', error);
-      // If token is invalid or expired, clear it
-      if (error.response?.status === 401) {
-        localStorage.removeItem('token');
-        setUser(null);
-        // Only redirect to login if we're not already on the login page
-        if (!pathname?.includes('/login')) {
-          router.push('/login');
-        }
-      }
-      setError(error.response?.data?.message || 'Authentication failed');
     } finally {
       setLoading(false);
     }
@@ -61,39 +47,53 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (email: string, password: string) => {
     try {
       setError(null);
-      const { user, token } = await authApi.login({ email, password });
-      if (!token) {
-        throw new Error('No token received from server');
+      
+      // DEV MOCK AUTH
+      if (email === 'dev@test.com' && password === 'dev123') {
+        const token = 'dummy-token';
+        const mockUser = {
+          _id: '64f1b2c3d4e5f6a7b8c9d0e1',
+          name: 'Dev User',
+          email: 'dev@test.com',
+          streak: { current: 0, longest: 0, lastCompleted: '' }
+        };
+        localStorage.setItem('token', token);
+        localStorage.setItem('dev_user', JSON.stringify(mockUser));
+        setUser(mockUser as any);
+        router.push('/dashboard');
+        return;
       }
-      localStorage.setItem('token', token);
-      setUser(user);
-      router.push('/dashboard');
+      
+      throw new Error('Invalid credentials. Use dev@test.com / dev123');
     } catch (error: any) {
-      const errorMessage = error.response?.data?.message || 'Login failed';
-      setError(errorMessage);
-      throw new Error(errorMessage);
+      setError(error.message);
+      throw error;
     }
   };
 
   const register = async (name: string, email: string, password: string) => {
     try {
       setError(null);
-      const { user, token } = await authApi.register({ name, email, password });
-      if (!token) {
-        throw new Error('No token received from server');
-      }
+      const token = 'dummy-token';
+      const mockUser = {
+        _id: '64f1b2c3d4e5f6a7b8c9d0e1',
+        name,
+        email,
+        streak: { current: 0, longest: 0, lastCompleted: '' }
+      };
       localStorage.setItem('token', token);
-      setUser(user);
+      localStorage.setItem('dev_user', JSON.stringify(mockUser));
+      setUser(mockUser as any);
       router.push('/dashboard');
     } catch (error: any) {
-      const errorMessage = error.response?.data?.message || 'Registration failed';
-      setError(errorMessage);
-      throw new Error(errorMessage);
+      setError(error.message);
+      throw error;
     }
   };
 
   const logout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('dev_user');
     setUser(null);
     setError(null);
     router.push('/login');
