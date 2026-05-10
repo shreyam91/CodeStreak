@@ -62,12 +62,12 @@ export default function HeroSectionOne() {
             Start Your Streak
             <ChevronRight size={18} className="transition-transform group-hover:translate-x-1" />
           </button>
-          <button 
+          {/* <button 
             onClick={() => router.push('/dashboard')}
             className="flex h-12 w-full sm:w-auto items-center justify-center gap-2 rounded-lg border border-border bg-background px-8 font-medium text-foreground transition-all hover:bg-muted"
           >
             Explore Dashboard
-          </button>
+          </button> */}
         </motion.div>
       </section>
 
@@ -173,7 +173,7 @@ export default function HeroSectionOne() {
                   <div className="bg-background rounded-xl p-4 border border-border">
                     <Trophy size={20} className="text-yellow-500 mb-2" />
                     <p className="text-2xl font-bold">Top 5%</p>
-                    <p className="text-xs text-muted-foreground">Global Ranking</p>
+                    <p className="text-xs text-muted-foreground">Platform Ranking</p>
                   </div>
                 </div>
               </div>
@@ -192,7 +192,7 @@ export default function HeroSectionOne() {
           </p>
           <div className="flex flex-wrap justify-center gap-8">
             <div className="flex flex-col items-center">
-              <span className="text-4xl font-extrabold mb-2">50k+</span>
+              <span className="text-4xl font-extrabold mb-2">5k+</span>
               <span className="text-primary-foreground/70 font-medium text-sm uppercase tracking-wider">Active Users</span>
             </div>
             <div className="flex flex-col items-center">
@@ -218,7 +218,7 @@ export default function HeroSectionOne() {
             onClick={() => router.push('/login')}
             className="h-14 items-center justify-center rounded-full bg-primary px-10 text-lg font-bold text-primary-foreground transition-all hover:bg-primary/90 hover:scale-105 active:scale-95 shadow-xl shadow-primary/20"
           >
-            Create Your Free Account
+            Prepare For Your Interview With US
           </button>
         </div>
       </section>

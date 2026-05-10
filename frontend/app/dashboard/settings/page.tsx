@@ -98,14 +98,14 @@ export default function SettingsPage() {
                     <BellRing size={18} className="mr-3 text-muted-foreground" />
                     Notifications
                   </TabsTrigger>
-                  <TabsTrigger value="study" className="w-full justify-start px-4 py-3 data-[state=active]:bg-card data-[state=active]:shadow-sm rounded-lg border border-transparent data-[state=active]:border-border">
+                  {/* <TabsTrigger value="study" className="w-full justify-start px-4 py-3 data-[state=active]:bg-card data-[state=active]:shadow-sm rounded-lg border border-transparent data-[state=active]:border-border">
                     <BookOpen size={18} className="mr-3 text-muted-foreground" />
                     Study Preferences
-                  </TabsTrigger>
-                  <TabsTrigger value="integrations" className="w-full justify-start px-4 py-3 data-[state=active]:bg-card data-[state=active]:shadow-sm rounded-lg border border-transparent data-[state=active]:border-border">
+                  </TabsTrigger> */}
+                  {/* <TabsTrigger value="integrations" className="w-full justify-start px-4 py-3 data-[state=active]:bg-card data-[state=active]:shadow-sm rounded-lg border border-transparent data-[state=active]:border-border">
                     <LinkIcon size={18} className="mr-3 text-muted-foreground" />
                     Integrations
-                  </TabsTrigger>
+                  </TabsTrigger> */}
                   <TabsTrigger value="security" className="w-full justify-start px-4 py-3 data-[state=active]:bg-card data-[state=active]:shadow-sm rounded-lg border border-transparent data-[state=active]:border-border">
                     <Shield size={18} className="mr-3 text-muted-foreground" />
                     Security

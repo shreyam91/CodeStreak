@@ -195,7 +195,7 @@ export default function ProfilePage() {
                     <div className="flex items-center justify-between mb-10">
                       <h3 className="text-xl font-bold flex items-center gap-2"><Target className="text-primary"/> Problem Solving</h3>
                       <div className="px-3 py-1 bg-muted rounded-md text-xs font-bold text-muted-foreground flex items-center gap-1.5 border border-border shadow-sm">
-                        <Trophy size={14} className="text-yellow-500"/> Top 2% Global
+                        <Trophy size={14} className="text-yellow-500"/> Top 2% Platform
                       </div>
                     </div>
 

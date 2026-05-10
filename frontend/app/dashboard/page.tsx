@@ -77,6 +77,32 @@ export default function Dashboard() {
                 <p className="text-muted-foreground">Here is an overview of your progress and recommended study items.</p>
               </div>
 
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="lg:col-span-1 flex justify-center lg:justify-start">
+                  <div className="w-full">
+                    <h2 className="text-xl font-bold mb-4">Focus Timer</h2>
+                    <PomodoroTimer />
+                  </div>
+                </div>
+                
+                <div className="lg:col-span-2">
+                  <div className="bg-card border border-border p-6 rounded-xl shadow-sm h-full">
+                    <h2 className="text-xl font-bold mb-6">Activity Streak</h2>
+                    {loading ? (
+                      <div className="flex justify-center items-center h-48">
+                        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+                      </div>
+                    ) : (
+                      <div className="w-full overflow-x-auto pb-4 custom-scrollbar">
+                        <div className="min-w-max pr-4">
+                          <YearStreakChart activityData={history} />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <Link href="/dashboard/dsa" className="group">
                   <div className="bg-card border border-border shadow-sm rounded-xl p-6 hover:shadow-md transition-all hover:border-primary/50 flex flex-col h-full">
@@ -112,7 +138,7 @@ export default function Dashboard() {
                 </Link>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-1 flex justify-center lg:justify-start">
                   <div className="w-full">
                     <h2 className="text-xl font-bold mb-4">Focus Timer</h2>
@@ -136,7 +162,7 @@ export default function Dashboard() {
                     )}
                   </div>
                 </div>
-              </div>
+              </div> */}
 
             </div>
           </div>

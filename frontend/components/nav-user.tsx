@@ -58,7 +58,7 @@ export function NavUser({
       <SidebarMenuItem>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground">
+            <button className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-sm hover:bg-gray-200 hover:text-accent-foreground">
               <Avatar className="h-8 w-8 rounded-lg">
                 <AvatarImage src={user.avatar} alt={user.name} />
                 <AvatarFallback className="rounded-lg">
@@ -68,7 +68,7 @@ export function NavUser({
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">{user.name}</span>
               </div>
-              <ChevronsUpDown className="ml-auto size-4" />
+              {/* <ChevronsUpDown className="ml-auto size-4" /> */}
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent

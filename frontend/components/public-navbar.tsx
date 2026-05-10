@@ -20,7 +20,8 @@ export function PublicNavbar() {
         <Link href="/machine-coding" className="hover:text-foreground transition-colors">Machine Coding</Link>
         <Link href="/dsa" className="hover:text-foreground transition-colors">DSA</Link>
         <Link href="/system-design" className="hover:text-foreground transition-colors">System Design</Link>
-        <Link href="/pricing" className="hover:text-foreground transition-colors">Pricing</Link>
+        <Link href="/blog" className="hover:text-foreground transition-colors">Blogs</Link>
+        {/* <Link href="/pricing" className="hover:text-foreground transition-colors">Pricing</Link> */}
       </div>
 
       <div className="flex items-center gap-4">

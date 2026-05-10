@@ -21,7 +21,7 @@ export function PublicFooter() {
               <li><Link href="/machine-coding" className="hover:text-primary transition-colors">Machine Coding</Link></li>
               <li><Link href="/dsa" className="hover:text-primary transition-colors">Data Structures</Link></li>
               <li><Link href="/system-design" className="hover:text-primary transition-colors">System Design</Link></li>
-              <li><Link href="/pricing" className="hover:text-primary transition-colors">Pricing</Link></li>
+              {/* <li><Link href="/pricing" className="hover:text-primary transition-colors">Pricing</Link></li> */}
             </ul>
           </div>
           <div>

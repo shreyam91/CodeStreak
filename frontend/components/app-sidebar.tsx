@@ -57,11 +57,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavUser user={userData} />
       </SidebarHeader>
       <SidebarContent>
-        <DatePicker />
+        {/* <DatePicker /> */}
         <SidebarGroup>
-          <SidebarGroupLabel className="px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 mt-4">
+          {/* <SidebarGroupLabel className="px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 mt-4">
             Menu
-          </SidebarGroupLabel>
+          </SidebarGroupLabel> */}
           <SidebarGroupContent>
             <SidebarMenu>
               {navItems.map((item) => (
