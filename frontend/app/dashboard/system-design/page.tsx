@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import React, { useState } from 'react';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage } from "@/components/ui/breadcrumb";
@@ -6,180 +6,137 @@ import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger, SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import Link from 'next/link';
+import { Search, Filter, CheckCircle2, Circle, ArrowUpDown } from 'lucide-react';
 
 const systemDesignQuestions = [
-  {
-    id: 1,
-    category: "HLD",
-    title: "Design a URL Shortener (e.g., TinyURL)",
-    difficulty: "Medium",
-    description: "Design a scalable service that converts long URLs into short aliases. When users access the short alias, they should be redirected to the original URL. The system needs to handle high read and write throughput.",
-    how: "1. APIs: createShortUrl(long_url) and getLongUrl(short_url).\n2. Database: A NoSQL database (like DynamoDB or Cassandra) is great for high availability and low latency reads. Store short_url as the key.\n3. Encoding: Use Base62 encoding to generate a 7-character string. Alternatively, use a Key Generation Service (KGS) to pre-generate keys.\n4. Caching: Use Redis to cache frequently accessed URLs to reduce DB load.\n5. Load Balancer: Route requests to available web servers.",
-    why: "This is a classic HLD question because it covers all the basic building blocks of a distributed system: API design, database choice (SQL vs NoSQL), caching, load balancing, and capacity estimation.",
-    diagram: "Client <-> Load Balancer <-> App Servers <-> Cache (Redis) & DB (Cassandra)"
-  },
-  {
-    id: 2,
-    category: "HLD",
-    title: "Design Netflix (Video Streaming Service)",
-    difficulty: "Hard",
-    description: "Design a global video streaming platform like Netflix. The system must stream high-quality video content to millions of concurrent users globally with minimal buffering.",
-    how: "1. CDN (Content Delivery Network): Use Open Connect (Netflix's custom CDN) to store videos geographically close to users.\n2. Storage: Store original video files in Amazon S3.\n3. Processing: Transcode uploaded videos into various formats and bitrates so clients can stream appropriately based on network speed.\n4. Metadata: Store user profiles, movie titles, and watch history in a scalable DB (e.g., Cassandra for history, MySQL for billing).\n5. Search: Use Elasticsearch for querying video titles.",
-    why: "Tests your understanding of CDNs, video transcoding pipelines, scalable microservices, and how to split read-heavy data (videos) from transactional data (billing).",
-    diagram: "Clients <-> CDN (Open Connect)\nClients <-> API Gateway <-> Microservices (Auth, Search, User) <-> Databases"
-  },
-  {
-    id: 3,
-    category: "LLD",
-    title: "Design a Parking Lot",
-    difficulty: "Medium",
-    description: "Design an object-oriented system for a multi-level parking lot. It should support different types of vehicles (Motorcycle, Car, Truck), assign tickets, and calculate payment upon exit.",
-    how: "1. Classes: ParkingLot, Level, ParkingSpot, Vehicle, Ticket.\n2. Enums: VehicleType (MOTORCYCLE, CAR, TRUCK), SpotType.\n3. Logic: When a vehicle enters, check for available spots using a strategy (e.g., nearest to entrance). Assign the vehicle to the spot and generate a Ticket.\n4. Billing: Use the Factory or Strategy design pattern to calculate the price based on vehicle type and duration parked.",
-    why: "Evaluates your ability to use Object-Oriented Principles (Abstraction, Encapsulation, Inheritance, Polymorphism) and identify appropriate design patterns in a real-world scenario.",
-    diagram: "ParkingLot -> List<Level>\nLevel -> List<ParkingSpot>\nParkingSpot -> Vehicle"
-  },
-  {
-    id: 4,
-    category: "LLD",
-    title: "Design Tic-Tac-Toe",
-    difficulty: "Easy",
-    description: "Design a scalable Object-Oriented Tic-Tac-Toe game. It should support 2 players taking turns on a 3x3 grid, and efficiently determine the winner.",
-    how: "1. Classes: Game, Board, Player.\n2. State: Board maintains a 2D array or simply an array of size 9.\n3. Win Check Logic: Instead of iterating through the entire board every turn, maintain counters for each row, column, and the two diagonals. When Player 1 places a piece, increment by 1. When Player 2 places, decrement by 1. A win happens if any counter reaches 3 or -3.",
-    why: "A great introductory OOD problem. It tests basic class design and algorithm optimization (O(1) win checking instead of O(N)).",
-    diagram: "Game -> Board, List<Player>\nPlayer -> (Symbol, Name)"
-  }
+  { id: 1, title: "Design a URL Shortener (TinyURL)", difficulty: "Medium", category: "HLD", status: "solved" },
+  { id: 2, title: "Design Netflix (Video Streaming)", difficulty: "Hard", category: "HLD", status: "unsolved" },
+  { id: 3, title: "Design a Parking Lot", difficulty: "Medium", category: "LLD", status: "unsolved" },
+  { id: 4, title: "Design Tic-Tac-Toe", difficulty: "Easy", category: "LLD", status: "solved" },
+  { id: 5, title: "Design Twitter (News Feed)", difficulty: "Hard", category: "HLD", status: "unsolved" },
+  { id: 6, title: "Design a Rate Limiter", difficulty: "Medium", category: "HLD", status: "unsolved" },
 ];
 
-export default function SystemDesignPage() {
-  const [activeCategory, setActiveCategory] = useState<"HLD" | "LLD">("HLD");
-  
-  const filteredQuestions = systemDesignQuestions.filter(q => q.category === activeCategory);
-  
-  const [activeId, setActiveId] = useState(filteredQuestions[0]?.id || 1);
-  const activeQuestion = systemDesignQuestions.find(q => q.id === activeId);
+export default function SystemDesignDashboardPage() {
+  const [search, setSearch] = useState("");
+  const [activeFilter, setActiveFilter] = useState("All");
+  const [difficultySort, setDifficultySort] = useState<"none" | "asc" | "desc">("none");
+
+  const categories = ["All", "HLD", "LLD"];
+
+  const filteredQuestions = systemDesignQuestions.filter(q => {
+    const matchesSearch = q.title.toLowerCase().includes(search.toLowerCase());
+    const matchesFilter = activeFilter === "All" || q.category === activeFilter;
+    return matchesSearch && matchesFilter;
+  }).sort((a, b) => {
+    if (difficultySort === "none") return 0;
+    const diffMap: Record<string, number> = { "Easy": 1, "Medium": 2, "Hard": 3 };
+    const aVal = diffMap[a.difficulty] || 0;
+    const bVal = diffMap[b.difficulty] || 0;
+    if (difficultySort === "asc") return aVal - bVal;
+    return bVal - aVal;
+  });
+
+  const toggleSort = () => {
+    if (difficultySort === "none") setDifficultySort("asc");
+    else if (difficultySort === "asc") setDifficultySort("desc");
+    else setDifficultySort("none");
+  };
 
   return (
     <ProtectedRoute>
       <SidebarProvider>
         <AppSidebar />
         <SidebarInset>
-          <div className="flex h-screen overflow-hidden">
-            <div className="flex flex-col h-full w-full">
-              <header className="bg-background sticky top-0 flex h-16 shrink-0 items-center gap-2 border-b px-4 justify-between">
-                <div className="flex items-center gap-2">
-                  <SidebarTrigger className="-ml-1" />
-                  <Separator orientation="vertical" className="mr-2 h-4" />
-                  <Breadcrumb>
-                    <BreadcrumbList>
-                      <BreadcrumbItem>
-                        <BreadcrumbPage className="font-bold">System Design</BreadcrumbPage>
-                      </BreadcrumbItem>
-                    </BreadcrumbList>
-                  </Breadcrumb>
+          <header className="bg-background sticky top-0 flex h-16 shrink-0 items-center gap-2 border-b px-4 z-10">
+            <SidebarTrigger className="-ml-1" />
+            <Separator orientation="vertical" className="mr-2 h-4" />
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem>
+                  <BreadcrumbPage className="font-bold">System Design</BreadcrumbPage>
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
+          </header>
+          
+          <div className="p-6 lg:p-10 flex-1 overflow-y-auto bg-muted/10">
+            <div className="max-w-6xl mx-auto space-y-8">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <h1 className="text-3xl font-bold mb-2">System Design</h1>
+                  <p className="text-muted-foreground">Master High Level (HLD) and Low Level (LLD) design patterns.</p>
                 </div>
-              </header>
+                
+                <div className="relative w-full md:w-80">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+                  <input 
+                    type="text" 
+                    placeholder="Search systems..." 
+                    className="w-full pl-10 pr-4 py-2.5 bg-background border border-border rounded-xl text-sm outline-none focus:border-primary transition-colors shadow-sm"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                  />
+                </div>
+              </div>
 
-              <div className="flex flex-1 overflow-hidden">
-                <div className="w-1/3 flex flex-col border-r border-border bg-card overflow-hidden">
-                  <div className="flex p-4 border-b border-border bg-muted/30">
-                    <button
-                      className={`flex-1 py-2 text-sm font-semibold rounded-l-md transition-colors ${activeCategory === 'HLD' ? 'bg-primary text-primary-foreground shadow' : 'bg-background text-muted-foreground hover:bg-muted'}`}
-                      onClick={() => {
-                        setActiveCategory("HLD");
-                        setActiveId(systemDesignQuestions.find(q => q.category === "HLD")?.id || 1);
-                      }}
+              <div className="flex flex-wrap items-center justify-between gap-4 pb-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Filter size={16} className="text-muted-foreground mr-1 shrink-0" />
+                  {categories.map(cat => (
+                    <button 
+                      key={cat}
+                      onClick={() => setActiveFilter(cat)}
+                      className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${activeFilter === cat ? 'bg-primary text-primary-foreground shadow-sm' : 'bg-background border border-border text-muted-foreground hover:bg-muted'}`}
                     >
-                      HLD
+                      {cat}
                     </button>
-                    <button
-                      className={`flex-1 py-2 text-sm font-semibold rounded-r-md transition-colors ${activeCategory === 'LLD' ? 'bg-primary text-primary-foreground shadow' : 'bg-background text-muted-foreground hover:bg-muted'}`}
-                      onClick={() => {
-                        setActiveCategory("LLD");
-                        setActiveId(systemDesignQuestions.find(q => q.category === "LLD")?.id || 3);
-                      }}
-                    >
-                      LLD
+                  ))}
+                </div>
+              </div>
+
+              <div className="border border-border bg-card rounded-2xl shadow-sm overflow-hidden">
+                <div className="grid grid-cols-12 gap-4 p-4 border-b border-border bg-muted/30 font-semibold text-sm text-muted-foreground items-center">
+                  <div className="col-span-1 text-center">Status</div>
+                  <div className="col-span-6">Title</div>
+                  <div className="col-span-2">
+                    <button onClick={toggleSort} className="flex items-center gap-1.5 hover:text-foreground transition-colors group">
+                      Difficulty
+                      <ArrowUpDown size={14} className={`transition-colors ${difficultySort !== 'none' ? 'text-primary' : 'text-muted-foreground/50 group-hover:text-muted-foreground'}`} />
                     </button>
                   </div>
-
-                  <div className="flex-1 overflow-y-auto p-4 gap-3 flex flex-col">
-                    {filteredQuestions.map((q) => (
-                      <div 
-                        key={q.id}
-                        onClick={() => setActiveId(q.id)}
-                        className={`p-4 rounded-lg cursor-pointer border transition-all duration-200 ${
-                          activeId === q.id 
-                            ? 'border-primary bg-primary/10 shadow-sm' 
-                            : 'border-border hover:border-primary/50 hover:bg-muted'
-                        }`}
-                      >
-                        <div className="flex justify-between items-start mb-1">
-                          <h3 className="font-semibold text-sm leading-tight pr-2">{q.title}</h3>
-                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium whitespace-nowrap ${
-                            q.difficulty === 'Easy' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
-                            q.difficulty === 'Medium' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' :
-                            'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                          }`}>
-                            {q.difficulty}
-                          </span>
-                        </div>
-                        <p className="text-xs text-muted-foreground line-clamp-2 mt-2">{q.description}</p>
-                      </div>
-                    ))}
-                  </div>
+                  <div className="col-span-3">Category</div>
                 </div>
 
-                <div className="w-2/3 flex flex-col bg-background overflow-y-auto">
-                  {activeQuestion && (
-                    <div className="p-8 max-w-4xl mx-auto w-full">
-                      <div className="mb-8">
-                        <div className="flex items-center gap-3 mb-4">
-                          <span className="bg-primary/20 text-primary px-3 py-1 rounded-md text-xs font-bold tracking-wider">
-                            {activeQuestion.category}
-                          </span>
-                          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-secondary text-secondary-foreground">
-                            {activeQuestion.difficulty}
-                          </span>
-                        </div>
-                        <h1 className="text-3xl font-bold mb-4">{activeQuestion.title}</h1>
-                        <h2 className="text-xl font-semibold mb-2">Requirements</h2>
-                        <p className="text-muted-foreground leading-relaxed text-sm md:text-base">{activeQuestion.description}</p>
+                <div className="divide-y divide-border">
+                  {filteredQuestions.map((problem) => (
+                    <Link 
+                      key={problem.id} 
+                      href={`/dashboard/system-design/${problem.id}`}
+                      className="grid grid-cols-12 gap-4 p-4 items-center hover:bg-muted/30 transition-colors cursor-pointer group"
+                    >
+                      <div className="col-span-1 flex justify-center">
+                        {problem.status === 'solved' ? (
+                          <CheckCircle2 size={20} className="text-green-500" />
+                        ) : (
+                          <Circle size={20} className="text-muted-foreground/30 group-hover:text-primary/50 transition-colors" />
+                        )}
                       </div>
-
-                      <Separator className="my-8" />
-
-                      <div className="flex flex-col gap-6">
-                        <div className="bg-card p-6 rounded-xl border shadow-sm relative overflow-hidden">
-                          <div className="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
-                          <h3 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
-                            <span className="text-xl">🛠️</span> Architecture & Approach
-                          </h3>
-                          <div className="text-sm text-card-foreground leading-relaxed whitespace-pre-line">
-                            {activeQuestion.how}
-                          </div>
-                        </div>
-                        
-                        <div className="bg-card p-6 rounded-xl border shadow-sm relative overflow-hidden">
-                          <div className="absolute top-0 left-0 w-1 h-full bg-green-500"></div>
-                          <h3 className="text-lg font-bold text-foreground mb-3 flex items-center gap-2">
-                            <span className="text-xl">🧠</span> Why is this asked?
-                          </h3>
-                          <p className="text-sm text-card-foreground leading-relaxed">
-                            {activeQuestion.why}
-                          </p>
-                        </div>
-
-                        <div className="bg-[#1e1e1e] p-6 rounded-xl border border-[#3c3c3c] shadow-lg mt-4">
-                          <h3 className="text-sm font-bold text-gray-300 mb-4 uppercase tracking-wider">
-                            Core Structure Map
-                          </h3>
-                          <pre className="text-sm text-[#4ec9b0] font-mono whitespace-pre-line leading-relaxed">
-                            {activeQuestion.diagram}
-                          </pre>
-                        </div>
+                      <div className="col-span-6 font-medium group-hover:text-primary transition-colors">
+                        {problem.title}
                       </div>
-                    </div>
-                  )}
+                      <div className="col-span-2">
+                        <span className={`text-xs px-2.5 py-1 rounded-md font-semibold ${
+                          problem.difficulty === 'Easy' ? 'bg-green-500/10 text-green-500' : 
+                          problem.difficulty === 'Medium' ? 'bg-yellow-500/10 text-yellow-500' : 'bg-red-500/10 text-red-500'
+                        }`}>
+                          {problem.difficulty}
+                        </span>
+                      </div>
+                      <div className="col-span-3 text-sm text-muted-foreground">{problem.category}</div>
+                    </Link>
+                  ))}
                 </div>
               </div>
             </div>
