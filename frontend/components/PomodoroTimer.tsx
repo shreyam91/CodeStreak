@@ -71,13 +71,13 @@ const PomodoroTimer: React.FC = () => {
   return (
     <div className="bg-gradient-to-br from-card to-muted/20 border border-border shadow-sm rounded-2xl p-5 w-full relative overflow-hidden group">
       {/* Background Animated Glow */}
-      <div className={`absolute -top-20 -right-20 w-40 h-40 blur-3xl opacity-20 rounded-full transition-colors duration-1000 ${mode === 'work' ? 'bg-primary' : 'bg-green-500'}`}></div>
+      <div className={`absolute -top-20 -right-20 w-40 h-40 blur-3xl opacity-20 rounded-full transition-colors duration-1000 ${mode === 'work' ? 'bg-orange-500' : 'bg-green-500'}`}></div>
 
       {/* Header Toggles */}
       <div className="flex gap-2 mb-6 relative z-10">
         <button 
           onClick={() => switchMode('work')}
-          className={`flex-1 py-1.5 px-3 text-xs font-bold rounded-full transition-all flex justify-center items-center gap-1.5 ${mode === 'work' ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20 scale-105' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`}
+          className={`flex-1 py-1.5 px-3 text-xs font-bold rounded-full transition-all flex justify-center items-center gap-1.5 ${mode === 'work' ? 'bg-orange-500 text-primary-foreground shadow-md shadow-primary/20 scale-105' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`}
         >
           <Briefcase size={14} /> Focus
         </button>
@@ -92,7 +92,7 @@ const PomodoroTimer: React.FC = () => {
       {/* Timer Display */}
       <div className="flex items-center justify-between mb-6 relative z-10">
         <button 
-          onClick={() => adjustTime(-5)} 
+          onClick={() => adjustTime(-1)} 
           disabled={isRunning}
           className="w-8 h-8 flex items-center justify-center rounded-full bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80 disabled:opacity-50 transition-all active:scale-90"
         >
@@ -101,14 +101,14 @@ const PomodoroTimer: React.FC = () => {
         
         <div className="flex flex-col items-center justify-center font-black tabular-nums tracking-tighter text-5xl">
           <div className="flex items-baseline">
-            <span className={mode === 'work' ? 'text-primary' : 'text-green-500'}>{m}</span>
+            <span className={mode === 'work' ? 'text-orange-500' : 'text-green-500'}>{m}</span>
             <span className="text-foreground animate-pulse">:</span>
             <span className="text-foreground">{s}</span>
           </div>
         </div>
 
         <button 
-          onClick={() => adjustTime(5)} 
+          onClick={() => adjustTime(1)} 
           disabled={isRunning}
           className="w-8 h-8 flex items-center justify-center rounded-full bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80 disabled:opacity-50 transition-all active:scale-90"
         >
@@ -121,7 +121,7 @@ const PomodoroTimer: React.FC = () => {
         <div className="flex gap-3 mb-4">
           <button 
             onClick={toggleTimer}
-            className={`flex-1 py-2.5 flex items-center justify-center rounded-xl text-white font-bold text-sm transition-all active:scale-95 shadow-lg ${isRunning ? 'bg-red-500 hover:bg-red-600 shadow-red-500/20' : (mode === 'work' ? 'bg-primary hover:bg-primary/90 shadow-primary/20' : 'bg-green-500 hover:bg-green-600 shadow-green-500/20')}`}
+            className={`flex-1 py-2.5 flex items-center justify-center rounded-xl text-white font-bold text-sm transition-all active:scale-95 shadow-lg ${isRunning ? 'bg-red-500 hover:bg-red-600 shadow-red-500/20' : (mode === 'work' ? 'bg-orange-500 hover:bg-primary/90 shadow-primary/20' : 'bg-green-500 hover:bg-green-600 shadow-green-500/20')}`}
           >
             {isRunning ? (
               <><Pause fill="currentColor" size={16} className="mr-1.5" /> Pause</>
@@ -141,7 +141,7 @@ const PomodoroTimer: React.FC = () => {
         {/* Minimal Progress Line */}
         <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
           <div 
-            className={`h-full transition-all duration-1000 ease-linear rounded-full ${mode === 'work' ? 'bg-primary' : 'bg-green-500'}`}
+            className={`h-full transition-all duration-1000 ease-linear rounded-full ${mode === 'work' ? 'bg-orange-500' : 'bg-green-500'}`}
             style={{ width: `${progress}%` }}
           />
         </div>

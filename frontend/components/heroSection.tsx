@@ -2,6 +2,7 @@
 
 import { motion } from "motion/react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Code2, Flame, Network, TerminalSquare, ChevronRight, Target, Zap, Shield, Trophy, Users, CheckCircle2, TrendingUp } from "lucide-react";
 import { PublicNavbar } from "./public-navbar";
 import { PublicFooter } from "./public-footer";
@@ -14,7 +15,7 @@ export default function HeroSectionOne() {
       <PublicNavbar />
       
       {/* Background Decor */}
-      <div className="absolute inset-0 z-0">
+      <div className="absolute inset-0 z-0 pointer-events-none">
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
         <div className="absolute left-0 right-0 top-0 -z-10 m-auto h-[310px] w-[310px] rounded-full bg-primary/20 opacity-30 blur-[100px]"></div>
       </div>
@@ -82,23 +83,27 @@ export default function HeroSectionOne() {
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {domains.map((domain, index) => (
-              <motion.div 
-                key={index}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-100px" }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="group relative overflow-hidden rounded-2xl border border-border bg-card p-8 shadow-sm transition-all hover:shadow-md hover:border-primary/50 text-left"
-              >
-                <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-primary/5 transition-transform group-hover:scale-150"></div>
-                <div className={`mb-6 inline-flex rounded-xl p-3 ${domain.color}`}>
-                  <domain.icon size={28} />
-                </div>
-                <h3 className="mb-3 text-2xl font-bold text-card-foreground">{domain.title}</h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  {domain.description}
-                </p>
-              </motion.div>
+              <Link href={domain.path} key={index} className="block h-full">
+                <motion.div 
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-100px" }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  className="group relative overflow-hidden rounded-2xl border border-border bg-card p-8 shadow-sm transition-all hover:shadow-md hover:border-primary/50 text-left h-full block cursor-pointer"
+                >
+                  <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-primary/5 transition-transform group-hover:scale-150"></div>
+                  <div className={`mb-6 inline-flex rounded-xl p-3 ${domain.color}`}>
+                    <domain.icon size={28} />
+                  </div>
+                  <h3 className="mb-3 text-2xl font-bold text-card-foreground flex items-center gap-2">
+                    {domain.title}
+                    <ChevronRight size={18} className="opacity-0 -translate-x-2 transition-all group-hover:opacity-100 group-hover:translate-x-0" />
+                  </h3>
+                  <p className="text-muted-foreground leading-relaxed">
+                    {domain.description}
+                  </p>
+                </motion.div>
+              </Link>
             ))}
           </div>
         </div>
@@ -229,18 +234,21 @@ const domains = [
     title: "Machine Coding",
     description: "Build real-world frontend and backend mini-projects. Learn component architecture, state management, and API design.",
     icon: TerminalSquare,
-    color: "bg-blue-500/10 text-blue-500 dark:bg-blue-500/20"
+    color: "bg-blue-500/10 text-blue-500 dark:bg-blue-500/20",
+    path: "/machine-coding"
   },
   {
     title: "Data Structures",
     description: "Curated problem lists from top tech companies. Master core patterns instead of memorizing thousands of solutions.",
     icon: Code2,
-    color: "bg-green-500/10 text-green-500 dark:bg-green-500/20"
+    color: "bg-green-500/10 text-green-500 dark:bg-green-500/20",
+    path: "/dsa"
   },
   {
     title: "System Design",
     description: "Learn how to architect highly scalable systems. Master databases, caching, load balancing, and microservices.",
     icon: Network,
-    color: "bg-purple-500/10 text-purple-500 dark:bg-purple-500/20"
+    color: "bg-purple-500/10 text-purple-500 dark:bg-purple-500/20",
+    path: "/system-design"
   }
 ];

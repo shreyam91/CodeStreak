@@ -2,47 +2,40 @@
 
 import * as React from "react"
 import { useAuth } from "@/contexts/AuthContext"
-import { Calendars } from "@/components/calendars"
 import { DatePicker } from "@/components/date-picker"
+import { 
+  Home, 
+  Code2, 
+  Network, 
+  Layers, 
+  Briefcase, 
+  FileText, 
+  PlaySquare 
+} from "lucide-react"
+import Link from "next/link"
 import { NavUser } from "@/components/nav-user"
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
-  SidebarSeparator,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
 } from "@/components/ui/sidebar"
 
-// Sample calendar data
-const calendarData = {
-  calendars: [
-    {
-      name: "Home",
-      items: [
-        { name: "Dashboard", url: "/dashboard" }
-      ],
-    },
-    {
-      name: "My Study",
-      items: [
-        { name: "Machine Coding", url: "/dashboard/machine-coding" },
-        { name: "DSA", url: "/dashboard/dsa" },
-        { name: "System Design", url: "/dashboard/system-design" },
-        { name: "Placement Preparation", url: "/dashboard/placement-prep" }
-      ],
-    },
-    {
-      name: "Other",
-      items: [
-        { name: "Travel", url: "/dashboard/travel" }
-      ],
-    },
-  ],
-}
+const navItems = [
+  { name: "Dashboard", url: "/dashboard", icon: Home },
+  { name: "Machine Coding", url: "/dashboard/machine-coding", icon: Code2 },
+  { name: "DSA", url: "/dashboard/dsa", icon: Network },
+  { name: "System Design", url: "/dashboard/system-design", icon: Layers },
+  { name: "Placement Preparation", url: "/dashboard/placement-prep", icon: Briefcase },
+  { name: "Blogs", url: "/dashboard/blogs", icon: FileText },
+  { name: "Videos", url: "/dashboard/videos", icon: PlaySquare },
+]
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useAuth()
@@ -65,8 +58,25 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <DatePicker />
-        <SidebarSeparator className="mx-0" />
-        <Calendars calendars={calendarData.calendars} />
+        <SidebarGroup>
+          <SidebarGroupLabel className="px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 mt-4">
+            Menu
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {navItems.map((item) => (
+                <SidebarMenuItem key={item.name}>
+                  <SidebarMenuButton asChild tooltip={item.name} className="flex items-center gap-3 px-4 py-2 hover:bg-muted rounded-md transition-colors">
+                    <Link href={item.url}>
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.name}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
       </SidebarContent>
       <SidebarRail />
     </Sidebar>
