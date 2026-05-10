@@ -8,6 +8,7 @@ import { Separator } from '@/components/ui/separator';
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import PomodoroTimer from '@/components/PomodoroTimer';
 import YearStreakChart from '@/components/YearStreakChart';
+import NotificationBell from '@/components/NotificationBell';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Code2, MonitorPlay, Layers, Flame } from 'lucide-react';
@@ -54,14 +55,18 @@ export default function Dashboard() {
                 </BreadcrumbList>
               </Breadcrumb>
             </div>
-            
-            {/* Daily Streak on top right */}
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-orange-500/10 rounded-full border border-orange-500/20 shadow-[0_0_15px_rgba(249,115,22,0.15)] transition-transform hover:scale-105 cursor-default">
-              <div className="relative flex items-center justify-center">
-                <Flame className="text-orange-500 relative z-10 animate-pulse" size={18} fill="currentColor" />
-                <div className="absolute inset-0 bg-orange-500 blur-md opacity-60 animate-pulse"></div>
+            <div className="flex items-center gap-4">
+              {/* Daily Streak on top right */}
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-orange-500/10 rounded-full border border-orange-500/20 shadow-[0_0_15px_rgba(249,115,22,0.15)] transition-transform hover:scale-105 cursor-default">
+                <div className="relative flex items-center justify-center">
+                  <Flame className="text-orange-500 relative z-10 animate-pulse" size={18} fill="currentColor" />
+                  <div className="absolute inset-0 bg-orange-500 blur-md opacity-60 animate-pulse"></div>
+                </div>
+                <span className="font-bold text-sm text-orange-600 dark:text-orange-400">12 Day</span>
               </div>
-              <span className="font-bold text-sm text-orange-600 dark:text-orange-400">12 Day Streak</span>
+
+              {/* Notification Bell */}
+              <NotificationBell />
             </div>
           </header>
           
